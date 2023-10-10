@@ -107,43 +107,62 @@ Let's put everything together into a complete example which allows navigating be
 ```python
 import flet as ft
 
-def main(page: ft.Page):
+def app(page: ft.Page): #App structure
     page.title = "Routes Example"
+    page.on_route_change = lambda route: route_change(page)
+    page.on_view_pop = lambda view: view_pop(page)
+    page.go(page.route)
 
-    def route_change(route):
-        page.views.clear()
-        page.views.append(
-            ft.View(
-                "/",
+#------------------------------------------------------------
+
+def home_view(page): #Home view
+    return ft.View(
+            "/",
+            [
+                ft.AppBar(title=ft.Text("Flet app"), bgcolor=ft.colors.SURFACE_VARIANT),
+                ft.ElevatedButton("Visit Store", on_click=lambda _: page.go("/store")),
+            ],
+        )
+
+#------------------------------------------------------------
+
+def store_view(page): #Store view
+     return ft.View(
+                "/store",
                 [
-                    ft.AppBar(title=ft.Text("Flet app"), bgcolor=ft.colors.SURFACE_VARIANT),
-                    ft.ElevatedButton("Visit Store", on_click=lambda _: page.go("/store")),
+                    ft.AppBar(title=ft.Text("Store"), bgcolor=ft.colors.SURFACE_VARIANT),
+                    ft.ElevatedButton("Go Home", on_click=lambda _: page.go("/")),
                 ],
             )
-        )
-        if page.route == "/store":
-            page.views.append(
-                ft.View(
-                    "/store",
-                    [
-                        ft.AppBar(title=ft.Text("Store"), bgcolor=ft.colors.SURFACE_VARIANT),
-                        ft.ElevatedButton("Go Home", on_click=lambda _: page.go("/")),
-                    ],
-                )
-            )
-        page.update()
 
-    def view_pop(view):
+#------------------------------------------------------------
+
+def route_change(page): #Event for change of pages
+    page.views.clear()
+    page.views.append(home_view(page))
+
+    if page.route == "/store":
+        page.views.append(store_view(page))
+    page.update()
+
+#------------------------------------------------------------
+
+def view_pop(page): #Changing the actual view
         page.views.pop()
         top_view = page.views[-1]
         page.go(top_view.route)
 
-    page.on_route_change = route_change
-    page.on_view_pop = view_pop
-    page.go(page.route)
+#------------------------------------------------------------
+
+def main(): #Run app
+    ft.app(target=app, view=ft.AppView.WEB_BROWSER)
+
+if __name__ == '__main__': #Good practice
+     main()
+
+#------------------------------------------------------------
 
 
-ft.app(target=main, view=ft.AppView.WEB_BROWSER)
 ```
 
 Try navigating between pages using "Visit Store" and "Go Home" buttons, Back/Forward browser buttons, manually changing route in the URL - it works no matter what! :)
